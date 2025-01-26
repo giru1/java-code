@@ -1,18 +1,19 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, Request
 from fastapi.responses import JSONResponse
+from app import limiter
 
 from wallets.dao import WalletDAO, OperationDAO
-
 from wallets.schemas import OperationRequest, WalletResponse, OperationResponse, WalletCreateRequest, \
     WalletGetRequest
 
+
 router = APIRouter(prefix="/wallets", tags=["Wallets"])
 
-
+@limiter.limit("100000/second")
 @router.post("/{walletId}/operation", response_model=OperationResponse)
-async def operate_wallet(body: OperationRequest, walletId: UUID = Path(..., description="The ID of the wallet")):
+async def operate_wallet(request: Request, body: OperationRequest, walletId: UUID = Path(..., description="The ID of the wallet")):
     try:
         result: OperationResponse = await OperationDAO.process_operation(
             walletId, {**body.model_dump(exclude_none=True)}
