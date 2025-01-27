@@ -40,13 +40,13 @@ class WalletDAO(BaseDAO):
 class OperationDAO(BaseDAO):
     model = Operation
 
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=4, max=10)
-    )
+    # @retry(
+    #     stop=stop_after_attempt(3),
+    #     wait=wait_exponential(multiplier=1, min=4, max=10)
+    # )
     @classmethod
     async def process_operation(cls, wallet_id, data: dict = {}) -> OperationResponse:
-        async with engine.transaction(isolation_level='SERIALIZABLE'):
+        # async with engine.transaction(isolation_level='SERIALIZABLE'):
             wallet: Wallet | None = await WalletDAO.get_wallet({"id": wallet_id})
             if not wallet:
                 raise HTTPException(
