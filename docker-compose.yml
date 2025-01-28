@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  wallets:
+    container_name: wallets-module
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - MODE=DEV
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=db_user
+      - DB_PASS=db_password
+      - DB_NAME=db_name
+
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: db_name
+      POSTGRES_USER: db_user
+      POSTGRES_PASSWORD: db_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

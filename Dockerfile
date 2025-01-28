@@ -1,13 +1,17 @@
-FROM python:3.11.3
+# Dockerfile
+FROM python:3.9-slim
 
-RUN mkdir /cash
+# Установите рабочую директорию
+WORKDIR /app
 
-WORKDIR /cash
-
+# Скопируйте файлы зависимостей
 COPY requirements.txt .
 
-RUN pip install -r requirements.txt
+# Установите зависимости
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Скопируйте код приложения
 COPY . .
 
-RUN chmod a+x /cash/docker/*.sh
+# Укажите команду для запуска приложения
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
