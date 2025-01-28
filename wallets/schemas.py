@@ -1,7 +1,7 @@
 from enum import Enum
 from uuid import UUID
 from pydantic.alias_generators import to_camel
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
 
 class OperationType(str, Enum):
@@ -26,7 +26,7 @@ class OperationRequest(Base):
     operation_type: OperationType = Field(alias="operationType")
     amount: float
 
-    @validator('amount')
+    @field_validator('amount')
     def amount_must_be_positive(cls, v):
         if v <= 0:
             raise ValueError('Amount must be positive')
@@ -46,7 +46,7 @@ class WalletCreateRequest(Base):
     name: str = Field(default='Кошелек')
     balance: float = Field(default=0.0)
 
-    @validator('balance')
+    @field_validator('balance')
     def balance_must_be_non_negative(cls, v):
         if v < 0:
             raise ValueError('Balance must be non-negative')
