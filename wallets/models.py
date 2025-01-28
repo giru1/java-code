@@ -23,7 +23,7 @@ class Operation(Base):
     __tablename__ = "operation"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    wallet_id: Mapped[UUID] = mapped_column(ForeignKey('wallet.id'), nullable=False)
+    wallet_id: Mapped[UUID] = mapped_column(ForeignKey('wallet.id'), nullable=False, index=True)
     operation_type: Mapped[str] = mapped_column(nullable=False)
     amount: Mapped[float] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
