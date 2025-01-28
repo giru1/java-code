@@ -1,53 +1,46 @@
-# <div id="main">Модуль кассовых смен</div>
+## Описание
 
-## <div id="content">Содержание</div>
+Данный проект представляет собой модуль для управления кошельками, который позволяет создавать, обновлять и выполнять операции с кошельками. Проект использует FastAPI для создания API и PostgreSQL в качестве базы данных.
 
-- [](#main)
-    - [Содержание](#content)
-    - [Предназначение](#target)
-    - [Установка](#install)
-    - [Использование](#usage)
+## Требования
 
-## <div id="target">Предназначение</div>
+- Docker версии ^24.0.0
+- Docker Compose
 
-Модуль ответственен за открытие, закрытие кассовых смен.
+## Установка
 
-## <div id="install">Установка</div>
+### Клонирование репозитория
 
-### Предварительные требования
+Сначала клонируйте репозиторий на ваш локальный компьютер:
 
-- docker версии ^24.0.0
 
-### Процесс установки
+git clone <URL_вашего_репозитория>
 
-1. Создать образ модуля
 
-```bash
-docker build -t efirit-cashshift-module:0.1 .
-```
+## Настройка окружения
 
-2. Применить этот образ в проекте Retail Backend
+Создайте файл `.env` в корне проекта и добавьте следующие переменные окружения:
 
-## <div id="usage">Использование</div>
+DB_HOST=db
+DB_PORT=5432
+DB_USER=db_user
+DB_PASS=db_password
+DB_NAME=db_name
 
-### Внешнее API
 
-apiHost - http адрес API сервера
+### Запуск приложения
 
-- [CashShift API](usageManuals/cashshift_api.md)
-- [CashReceipt API](usageManuals/cashreceipt_api.md)
+1. Убедитесь, что у вас установлен Docker и Docker Compose.
+2. В корне проекта выполните команду:
 
-### RabbitMQ
+docker-compose up --build
 
-#### Прослушиваемые очереди и их объекты (см. Miro)
 
-- checkoutShift/eventAck => RabbitEvent
-- checkoutShift/removeOrganization => OrganizationEvent
-- checkoutShift/removeStore => StoreEvent
+Это создаст и запустит контейнеры для вашего приложения и базы данных.
 
-#### Отправляемые очереди и их объекты (см. Miro)
+## Использование
 
-- prodMove/salesCashReceipt => cashReceiptEvent
-- prodMove/returnCashReceipt => cashReceiptEvent
+После успешного запуска приложения, вы сможете получить доступ к API по адресу:
 
-uvicorn main:app --reload
+http://localhost:8000/api/v1/
+
