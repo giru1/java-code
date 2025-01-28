@@ -1,8 +1,9 @@
 from fastapi import HTTPException
+from sqlalchemy import text
 
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from sqlalchemy.exc import OperationalError
-from database import engine
+from database import engine, async_session_maker
 
 from wallets.models import Wallet, Operation
 from wallets.schemas import WalletResponse, OperationType, OperationResponse
@@ -46,33 +47,37 @@ class OperationDAO(BaseDAO):
     # )
     @classmethod
     async def process_operation(cls, wallet_id, data: dict = {}) -> OperationResponse:
-        # async with engine.transaction(isolation_level='SERIALIZABLE'):
-            wallet: Wallet | None = await WalletDAO.get_wallet({"id": wallet_id})
-            if not wallet:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Wallet with id {wallet_id} not found"
+        async with async_session_maker() as session:
+            async with session.begin():
+                # Устанавливаем уровень изоляции SERIALIZABLE
+                await session.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
+
+                wallet: Wallet | None = await WalletDAO.get_wallet({"id": wallet_id})
+                if not wallet:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Wallet with id {wallet_id} not found"
+                    )
+
+                operation_type = data.get('operation_type')
+
+                # Выполняем операцию
+                if operation_type == OperationType.DEPOSIT.value:
+                    new_balance = wallet.balance + data['amount']
+                else:  # WITHDRAW
+                    if wallet.balance < data['amount']:
+                        raise ValueError("Insufficient funds")
+                    new_balance = wallet.balance - data['amount']
+
+                await WalletDAO.update_wallet(
+                    filter_by={"id": wallet_id},
+                    data={"balance": new_balance}  # передаем только баланс
                 )
 
-            operation_type = data.get('operation_type')
+                operation_data = {
+                    "wallet_id": wallet_id,
+                    **data
+                }
 
-            # Выполняем операцию
-            if operation_type == OperationType.DEPOSIT.value:
-                new_balance = wallet.balance + data['amount']
-            else:  # WITHDRAW
-                if wallet.balance < data['amount']:
-                    raise ValueError("Insufficient funds")
-                new_balance = wallet.balance - data['amount']
-
-            await WalletDAO.update_wallet(
-                filter_by={"id": wallet_id},
-                data={"balance": new_balance}  # передаем только баланс
-            )
-
-            operation_data = {
-                "wallet_id": wallet_id,
-                **data
-            }
-
-            operation = await cls.add(operation_data)
-            return OperationResponse.model_validate(operation)
+                operation = await cls.add(operation_data)
+                return OperationResponse.model_validate(operation)
